@@ -27,6 +27,7 @@ export type AppPageProps<
 };
 
 export interface User {
+    roles: any;
     id: number;
     name: string;
     email: string;
