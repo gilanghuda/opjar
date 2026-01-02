@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -30,10 +31,19 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+
+        // Attach a sensible default role to newly registered users.
+        // If the 'lecturer' role exists, assign it so users can access lecturer routes.
+        $role = Role::where('name', 'lecturer')->first();
+        if ($role) {
+            $user->roles()->syncWithoutDetaching([$role->id]);
+        }
+
+        return $user;
     }
 }
