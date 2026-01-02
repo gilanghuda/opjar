@@ -31,10 +31,17 @@ import {
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { toUrl, urlIsActive } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { dashboard as adminDashboard } from '@/routes/admin';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, User, Book, Users, FileText, Calendar, Key, Shield } from 'lucide-vue-next';
+import { index as lecturersIndex } from '@/routes/admin/dosen';
+import { index as subjectsIndex } from '@/routes/admin/mapel';
+import { index as classesIndex } from '@/routes/admin/kelas';
+import { index as agendasIndex } from '@/routes/admin/agenda';
+import { index as filesIndex } from '@/routes/admin/files';
+import { index as wewenangIndex } from '@/routes/admin/wewenang';
+import { index as rolesIndex } from '@/routes/admin/roles';
 import { computed } from 'vue';
 
 interface Props {
@@ -60,11 +67,48 @@ const activeItemStyles = computed(
             : '',
 );
 
+// mainNavItems replaced below with updated labels
+
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
+        title: 'Home',
+        href: adminDashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Dosen',
+        href: lecturersIndex(),
+        icon: User,
+    },
+    {
+        title: 'Mapel',
+        href: subjectsIndex(),
+        icon: Book,
+    },
+    {
+        title: 'Kelas',
+        href: classesIndex(),
+        icon: Users,
+    },
+    {
+        title: 'Agenda',
+        href: agendasIndex(),
+        icon: Calendar,
+    },
+    {
+        title: 'File Pembelajaran',
+        href: filesIndex(),
+        icon: FileText,
+    },
+    {
+        title: 'Wewenang',
+        href: wewenangIndex(),
+        icon: Key,
+    },
+    {
+        title: 'Hak Akses',
+        href: rolesIndex(),
+        icon: Shield,
     },
 ];
 
@@ -80,6 +124,15 @@ const rightNavItems: NavItem[] = [
         icon: BookOpen,
     },
 ];
+
+const visibleMainItems = computed(() => {
+    const roles: string[] = auth.value?.user?.roles?.map((r: any) => r.name) || [];
+    if (roles.includes('admin')) return mainNavItems;
+    if (roles.includes('lecturer')) {
+        return mainNavItems.filter((i) => ['Home', 'Agenda', 'File Pembelajaran'].includes(i.title));
+    }
+    return mainNavItems.filter((i) => i.title === 'Home');
+});
 </script>
 
 <template>
@@ -112,7 +165,7 @@ const rightNavItems: NavItem[] = [
                             >
                                 <nav class="-mx-3 space-y-1">
                                     <Link
-                                        v-for="item in mainNavItems"
+                                        v-for="item in visibleMainItems"
                                         :key="item.title"
                                         :href="item.href"
                                         class="flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
@@ -148,7 +201,7 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="dashboard()" class="flex items-center gap-x-2">
+                <Link :href="adminDashboard()" class="flex items-center gap-x-2">
                     <AppLogo />
                 </Link>
 
@@ -159,7 +212,7 @@ const rightNavItems: NavItem[] = [
                             class="flex h-full items-stretch space-x-2"
                         >
                             <NavigationMenuItem
-                                v-for="(item, index) in mainNavItems"
+                                v-for="(item, index) in visibleMainItems"
                                 :key="index"
                                 class="relative flex h-full items-center"
                             >
@@ -260,7 +313,7 @@ const rightNavItems: NavItem[] = [
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-56">
+                        <DropdownMenuContent  class="w-56">
                             <UserMenuContent :user="auth.user" />
                         </DropdownMenuContent>
                     </DropdownMenu>
